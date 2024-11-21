@@ -1,13 +1,6 @@
 ﻿using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Samples.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace ConsoleApp3
 {
@@ -33,8 +26,6 @@ namespace ConsoleApp3
             var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
             Console.WriteLine("The MQTT client is connected.");
-
-            await this.SubscribeToTopic();
         }
 
         public async Task SubscribeToTopic(string topic = "Test")
@@ -48,7 +39,7 @@ namespace ConsoleApp3
 
             await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
 
-            Console.WriteLine("MQTT client subscribed to topic.");
+            Console.WriteLine($"MQTT client subscribed to topic: {topic}");
         }
 
         public async Task PublishMessage(string topic = "Test", string payload = "Message published from a client!")
@@ -70,29 +61,12 @@ namespace ConsoleApp3
             Console.WriteLine("Client disconnected from server!");
         }
 
-        private async Task<Task> getMessage(MqttApplicationMessageReceivedEventArgs e)
+        public virtual async Task<Task> getMessage(MqttApplicationMessageReceivedEventArgs e)
         {
-            Console.WriteLine("Received application message.");
-            // Serialize asynchronously
-            using var serializeStream = new MemoryStream();
-            await JsonSerializer.SerializeAsync(serializeStream, e.ApplicationMessage.PayloadSegment, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            var message = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+            var topic = e.ApplicationMessage.Topic;
 
-            // Reset the stream position for reading
-            serializeStream.Position = 0;
-
-            // Deserialize asynchronously
-            var deserializedArray = await JsonSerializer.DeserializeAsync<int[]>(serializeStream) ?? new int[1];
-
-            // Transform the deserialized data into a string
-            var deserializedMessage = string.Join("", deserializedArray
-                .ToList()
-                .Select(n => (char)n)
-                .ToList());
-
-            Console.WriteLine($"Deserialized Message: {deserializedMessage}");
+            Console.WriteLine($"{topic}: {message}");
 
             return Task.CompletedTask;
         }

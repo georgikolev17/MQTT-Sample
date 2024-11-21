@@ -28,21 +28,6 @@ namespace ConsoleApp3
         {
             await this.mqttServer.StartAsync();
             Console.WriteLine("MQTT Server successfully started!");
-
-            var client = new Client();
-            await client.ConnectToServer();
-
-            await client.PublishMessage();
-            await this.InjectMessage();
-
-            // Gives time to get all the messages
-            await Task.Delay(50);
-            await client.DisconnectFromServer();
-
-            Console.WriteLine("\nPress enter to stop the server...");
-            Console.ReadLine();
-
-            await this.StopServer();
         }
 
         public async Task InjectMessage(string topic = "Test", string payload = "Hello from test topic!", string senderId = "TestId")
